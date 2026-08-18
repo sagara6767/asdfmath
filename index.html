@@ -855,21 +855,16 @@
 
 
             function changeType(id, type) {
-
                 const box = document.getElementById("question-" + id);
-
-                const choiceArea = box.querySelector(".choice-area");
-                const shortArea = box.querySelector(".short-area");
-
-                if (type === "choice") {
-                    choiceArea.style.display = "block";
-                    shortArea.style.display = "none";
+            
+                if (type === "short") {
+                    box.querySelector(".choice-area").style.display = "none";
+                    box.querySelector(".short-area").style.display = "block";
                 } else {
-                    choiceArea.style.display = "none";
-                    shortArea.style.display = "block";
+                    box.querySelector(".choice-area").style.display = "block";
+                    box.querySelector(".short-area").style.display = "none";
                 }
             }
-
 
             function deleteQuestion(id) {
 
