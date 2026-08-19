@@ -201,11 +201,6 @@
             background: #f5f3ff;
         }
 
-        .quiz-option.selected {
-            border-color: #4f46e5;
-            background: #eef2ff;
-        }
-
         .quiz-option.correct {
             border-color: #22c55e;
             background: #dcfce7;
@@ -254,14 +249,6 @@
             transition: 0.3s;
         }
 
-        .explanation {
-            margin-top: 18px;
-            padding: 15px;
-            background: #fff7ed;
-            border-radius: 12px;
-            color: #9a3412;
-        }
-
         .big-question {
             font-size: 22px;
             font-weight: bold;
@@ -291,6 +278,14 @@
             margin: auto;
         }
 
+        .answer-box {
+            background: #f8fafc;
+            border: 2px solid #e5e7eb;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 15px;
+        }
+
         @media (max-width: 600px) {
             .nav {
                 flex-direction: column;
@@ -313,502 +308,645 @@
 
 <body>
 
-    <header>
-        <h1>🧠 Quiz Maker</h1>
-        <p>내가 직접 만들고 내가 푸는 퀴즈</p>
-    </header>
+<header>
+    <h1>🧠 Quiz Maker</h1>
+    <p>내가 직접 만들고 내가 푸는 퀴즈</p>
+</header>
 
-    <div class="container">
+<div class="container">
 
-        <div class="nav">
-            <button id="navCreate" class="active" onclick="showPage('create')">
-                ✏️ 퀴즈 만들기
-            </button>
+    <div class="nav">
 
-            <button id="navList" onclick="showPage('list')">
-                📚 내 퀴즈
-            </button>
+        <button id="navCreate"
+                class="active"
+                onclick="showPage('create')">
+            ✏️ 퀴즈 만들기
+        </button>
 
-            <button id="navStats" onclick="showPage('stats')">
-                📊 기록
-            </button>
+        <button id="navList"
+                onclick="showPage('list')">
+            📚 내 퀴즈
+        </button>
 
-            <button onclick="showPage('notebook')">
-                📓 연습장
-            </button>
+        <button id="navStats"
+                onclick="showPage('stats')">
+            📊 기록
+        </button>
+
+        <button id="navNotebook"
+                onclick="showPage('notebook')">
+            📓 연습장
+        </button>
+
+    </div>
+
+
+    <!-- =========================
+         퀴즈 만들기
+    ========================== -->
+
+    <section id="createPage" class="page active">
+
+        <div class="card">
+
+            <h2>✏️ 새 퀴즈 만들기</h2>
+
+            <label>퀴즈 제목</label>
+
+            <input id="quizTitle"
+                   type="text"
+                   placeholder="예: 중간고사 복습 퀴즈">
+
+
+            <label>설명</label>
+
+            <textarea id="quizDescription"
+                      placeholder="이 퀴즈에 대한 설명을 적어보세요."></textarea>
+
+
+            <div id="questionBuilder"></div>
+
+
+            <div class="actions">
+
+                <button class="secondary"
+                        onclick="addQuestion()">
+                    ➕ 문제 추가
+                </button>
+
+                <button class="primary"
+                        onclick="saveQuiz()">
+                    💾 퀴즈 저장
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         퀴즈 목록
+    ========================== -->
+
+    <section id="listPage" class="page">
+
+        <div class="card">
+
+            <h2>📚 내 퀴즈</h2>
+
+            <div id="quizList"></div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         퀴즈 풀기
+    ========================== -->
+
+    <section id="playPage" class="page">
+
+        <div class="card quiz-card">
+
+            <div id="quizPlay"></div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         기록
+    ========================== -->
+
+    <section id="statsPage" class="page">
+
+        <div class="card">
+
+            <h2>📊 내 기록</h2>
+
+            <div id="stats"></div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         연습장
+    ========================== -->
+
+    <section id="notebookPage" class="page">
+
+        <div class="card">
+
+            <h2>📓 연습장</h2>
+
+            <p style="color:#666;">
+                문제를 풀면서 자유롭게 풀이를 적거나 메모하세요.
+            </p>
+
+            <textarea id="notebookText"
+                      placeholder="여기에 풀이, 계산 과정, 메모 등을 적어보세요..."
+                      style="min-height:300px;font-size:16px;line-height:1.7;"></textarea>
+
+            <div class="actions">
+
+                <button class="primary"
+                        onclick="saveNotebook()">
+                    💾 저장
+                </button>
+
+                <button class="secondary"
+                        onclick="clearNotebook()">
+                    🗑️ 전체 지우기
+                </button>
+
+            </div>
+
+            <p id="saveMessage"
+               style="color:#16a34a;margin-top:12px;">
+            </p>
+
         </div>
 
 
-        <!-- 퀴즈 만들기 -->
-        <section id="createPage" class="page active">
+        <div class="card">
 
-            <div class="card">
-                <h2>✏️ 새 퀴즈 만들기</h2>
+            <h2>🎨 그림 연습장</h2>
 
-                <label>퀴즈 제목</label>
-                <input id="quizTitle" type="text" placeholder="예: 중간고사 복습 퀴즈">
+            <canvas id="drawingCanvas"
+                    width="800"
+                    height="450"
+                    style="
+                    width:100%;
+                    border:2px solid #ddd;
+                    border-radius:12px;
+                    background:white;
+                    touch-action:none;
+                    cursor:crosshair;
+                    "></canvas>
 
-                <label>설명</label>
-                <textarea id="quizDescription" placeholder="이 퀴즈에 대한 설명을 적어보세요."></textarea>
+            <div class="actions">
 
-                <div id="questionBuilder"></div>
+                <button class="primary"
+                        onclick="clearCanvas()">
+                    🧹 지우기
+                </button>
 
-                <div class="actions">
-                    <button class="secondary" onclick="addQuestion()">
-                        ➕ 문제 추가
-                    </button>
-
-                    <button class="primary" onclick="saveQuiz()">
-                        💾 퀴즈 저장
-                    </button>
-                </div>
-            </div>
-
-        </section>
-
-
-        <!-- 퀴즈 목록 -->
-        <section id="listPage" class="page">
-
-            <div class="card">
-                <h2>📚 내 퀴즈</h2>
-
-                <div id="quizList"></div>
-            </div>
-
-        </section>
-
-
-        <!-- 퀴즈 풀기 -->
-        <section id="playPage" class="page">
-
-            <div class="card quiz-card">
-
-                <div id="quizPlay"></div>
+                <button class="secondary"
+                        onclick="saveCanvas()">
+                    💾 그림 저장
+                </button>
 
             </div>
 
-        </section>
+        </div>
 
+    </section>
 
-        <!-- 기록 -->
-        <section id="statsPage" class="page">
+</div>
 
-            <div class="card">
-                <h2>📊 내 기록</h2>
 
-                <div id="stats"></div>
-            </div>
+<script>
 
-        </section>
+/* =========================
+   연습장
+========================= */
 
-        <section id="notebookPage" class="page">
+function saveNotebook() {
 
-            <div class="card">
-                <h2>📓 연습장</h2>
+    const text =
+        document.getElementById("notebookText").value;
 
-                <p style="color:#666;">
-                    문제를 풀면서 자유롭게 풀이를 적거나 메모하세요.
-                </p>
+    localStorage.setItem(
+        "quizNotebook",
+        text
+    );
 
-                <textarea id="notebookText" placeholder="여기에 풀이, 계산 과정, 메모 등을 적어보세요..." style="
-                min-height:300px;
-                font-size:16px;
-                line-height:1.7;
-            "></textarea>
+    document.getElementById("saveMessage").textContent =
+        "✅ 저장되었습니다!";
+}
 
-                <div class="actions">
 
-                    <button class="primary" onclick="saveNotebook()">
-                        💾 저장
-                    </button>
+function loadNotebook() {
 
-                    <button class="secondary" onclick="clearNotebook()">
-                        🗑️ 전체 지우기
-                    </button>
+    const saved =
+        localStorage.getItem("quizNotebook");
 
-                </div>
+    document.getElementById("notebookText").value =
+        saved || "";
+}
 
-                <p id="saveMessage" style="color:#16a34a;margin-top:12px;">
-                </p>
-            </div>
 
+function clearNotebook() {
 
-            <!-- 그림 그리기 -->
-            <div class="card">
+    if (!confirm("연습장 내용을 전부 지울까요?")) {
+        return;
+    }
 
-                <h2>🎨 그림 연습장</h2>
+    document.getElementById("notebookText").value = "";
 
-                <canvas id="drawingCanvas" width="800" height="450" style="
-                width:100%;
-                border:2px solid #ddd;
-                border-radius:12px;
-                background:white;
-                touch-action:none;
-                cursor:crosshair;
-            "></canvas>
+    localStorage.removeItem("quizNotebook");
 
-                <div class="actions">
+    document.getElementById("saveMessage").textContent =
+        "🗑️ 연습장을 지웠습니다.";
+}
 
-                    <button class="primary" onclick="clearCanvas()">
-                        🧹 지우기
-                    </button>
 
-                    <button>
-                        class="secondary"
-                        onclick="saveCanvas()"
-                        >
-                        💾 그림 저장
-                    </button>
+/* =========================
+   그림 연습장
+========================= */
 
-                </div>
+let canvas;
+let ctx;
+let drawing = false;
 
-            </div>
 
-        </section>
+function initCanvas() {
 
+    canvas =
+        document.getElementById("drawingCanvas");
 
+    if (!canvas) {
+        return;
+    }
 
+    ctx = canvas.getContext("2d");
 
-        <script>
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = "#222";
 
-            /* =========================
-       📓 텍스트 연습장
-       ========================= */
+    canvas.onpointerdown = startDrawing;
+    canvas.onpointermove = draw;
+    canvas.onpointerup = stopDrawing;
+    canvas.onpointerleave = stopDrawing;
 
-            function saveNotebook() {
+    loadCanvas();
+}
 
-                const text =
-                    document.getElementById("notebookText").value;
 
-                localStorage.setItem(
-                    "quizNotebook",
-                    text
-                );
+function getCanvasPosition(event) {
 
-                document.getElementById("saveMessage").textContent =
-                    "✅ 저장되었습니다!";
-            }
+    const rect =
+        canvas.getBoundingClientRect();
 
+    return {
+        x:
+            (event.clientX - rect.left)
+            * canvas.width
+            / rect.width,
 
-            function loadNotebook() {
+        y:
+            (event.clientY - rect.top)
+            * canvas.height
+            / rect.height
+    };
+}
 
-                const saved =
-                    localStorage.getItem("quizNotebook");
 
-                document.getElementById("notebookText").value =
-                    saved || "";
-            }
+function startDrawing(event) {
 
+    drawing = true;
 
-            function clearNotebook() {
+    const pos =
+        getCanvasPosition(event);
 
-                if (!confirm("연습장 내용을 전부 지울까요?")) {
-                    return;
-                }
+    ctx.beginPath();
 
-                document.getElementById("notebookText").value = "";
+    ctx.moveTo(
+        pos.x,
+        pos.y
+    );
+}
 
-                localStorage.removeItem("quizNotebook");
 
-                document.getElementById("saveMessage").textContent =
-                    "🗑️ 연습장을 지웠습니다.";
-            }
+function draw(event) {
 
+    if (!drawing) {
+        return;
+    }
 
-            /* =========================
-            🎨 그림 연습장
-            ========================= */
+    const pos =
+        getCanvasPosition(event);
 
-            let canvas;
-            let ctx;
-            let drawing = false;
+    ctx.lineTo(
+        pos.x,
+        pos.y
+    );
 
+    ctx.stroke();
+}
 
-            function initCanvas() {
 
-                canvas =
-                    document.getElementById("drawingCanvas");
+function stopDrawing() {
 
-                if (!canvas) {
-                    return;
-                }
+    drawing = false;
 
-                ctx = canvas.getContext("2d");
+    if (ctx) {
+        ctx.closePath();
+    }
 
-                ctx.lineWidth = 3;
-                ctx.lineCap = "round";
-                ctx.lineJoin = "round";
-                ctx.strokeStyle = "#222";
+    saveCanvas();
+}
 
-                canvas.onpointerdown = startDrawing;
-                canvas.onpointermove = draw;
-                canvas.onpointerup = stopDrawing;
-                canvas.onpointerleave = stopDrawing;
 
-                loadCanvas();
-            }
+function clearCanvas() {
 
+    if (!ctx || !canvas) {
+        return;
+    }
 
-            function getCanvasPosition(event) {
+    if (!confirm("그림을 모두 지울까요?")) {
+        return;
+    }
 
-                const rect =
-                    canvas.getBoundingClientRect();
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
 
-                return {
-                    x:
-                        (event.clientX - rect.left)
-                        * canvas.width
-                        / rect.width,
+    localStorage.removeItem("quizDrawing");
+}
 
-                    y:
-                        (event.clientY - rect.top)
-                        * canvas.height
-                        / rect.height
-                };
-            }
 
+function saveCanvas() {
 
-            function startDrawing(event) {
+    if (!canvas) {
+        return;
+    }
 
-                drawing = true;
+    localStorage.setItem(
+        "quizDrawing",
+        canvas.toDataURL()
+    );
+}
 
-                const pos =
-                    getCanvasPosition(event);
 
-                ctx.beginPath();
+function loadCanvas() {
 
-                ctx.moveTo(
-                    pos.x,
-                    pos.y
-                );
-            }
+    const saved =
+        localStorage.getItem("quizDrawing");
 
+    if (!saved || !ctx) {
+        return;
+    }
 
-            function draw(event) {
+    const image =
+        new Image();
 
-                if (!drawing) {
-                    return;
-                }
+    image.onload = function () {
 
-                const pos =
-                    getCanvasPosition(event);
+        ctx.clearRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
 
-                ctx.lineTo(
-                    pos.x,
-                    pos.y
-                );
+        ctx.drawImage(
+            image,
+            0,
+            0
+        );
+    };
 
-                ctx.stroke();
-            }
+    image.src = saved;
+}
 
 
-            function stopDrawing() {
+/* =========================
+   퀴즈 데이터
+========================= */
 
-                drawing = false;
+let quizzes =
+    JSON.parse(
+        localStorage.getItem("myQuizzes") || "[]"
+    );
 
-                if (ctx) {
-                    ctx.closePath();
-                }
+let currentQuiz = null;
+let currentQuestions = [];
+let currentIndex = 0;
+let currentScore = 0;
+let answered = false;
 
-                saveCanvas();
-            }
+let questionCount = 0;
 
 
-            function clearCanvas() {
+/* =========================
+   페이지 이동
+========================= */
 
-                if (!ctx || !canvas) {
-                    return;
-                }
+function showPage(page) {
 
-                if (!confirm("그림을 모두 지울까요?")) {
-                    return;
-                }
+    document.querySelectorAll(".page").forEach(p => {
+        p.classList.remove("active");
+    });
 
-                ctx.clearRect(
-                    0,
-                    0,
-                    canvas.width,
-                    canvas.height
-                );
+    document.querySelectorAll(".nav button").forEach(b => {
+        b.classList.remove("active");
+    });
 
-                localStorage.removeItem(
-                    "quizDrawing"
-                );
-            }
 
+    if (page === "create") {
 
-            function saveCanvas() {
+        document.getElementById("createPage")
+            .classList.add("active");
 
-                if (!canvas) {
-                    return;
-                }
+        document.getElementById("navCreate")
+            .classList.add("active");
+    }
 
-                localStorage.setItem(
-                    "quizDrawing",
-                    canvas.toDataURL()
-                );
-            }
 
+    if (page === "list") {
 
-            function loadCanvas() {
+        document.getElementById("listPage")
+            .classList.add("active");
 
-                const saved =
-                    localStorage.getItem("quizDrawing");
+        document.getElementById("navList")
+            .classList.add("active");
 
-                if (!saved || !ctx) {
-                    return;
-                }
+        renderQuizList();
+    }
 
-                const image =
-                    new Image();
 
-                image.onload = function () {
+    if (page === "stats") {
 
-                    ctx.clearRect(
-                        0,
-                        0,
-                        canvas.width,
-                        canvas.height
-                    );
+        document.getElementById("statsPage")
+            .classList.add("active");
 
-                    ctx.drawImage(
-                        image,
-                        0,
-                        0
-                    );
-                };
+        document.getElementById("navStats")
+            .classList.add("active");
 
-                image.src = saved;
-            }
+        renderStats();
+    }
 
-            let quizzes = JSON.parse(localStorage.getItem("myQuizzes") || "[]");
 
-            let currentQuiz = null;
-            let currentQuestions = [];
-            let currentIndex = 0;
-            let currentScore = 0;
-            let answered = false;
+    if (page === "notebook") {
 
+        document.getElementById("notebookPage")
+            .classList.add("active");
 
-            /* =========================
-               페이지 이동
-            ========================= */
+        document.getElementById("navNotebook")
+            .classList.add("active");
 
-            function showPage(page) {
+        loadNotebook();
 
-                document.querySelectorAll(".page").forEach(p => {
-                    p.classList.remove("active");
-                });
+        initCanvas();
+    }
+}
 
-                document.querySelectorAll(".nav button").forEach(b => {
-                    b.classList.remove("active");
-                });
 
-                if (page === "create") {
-                    document.getElementById("createPage").classList.add("active");
-                    document.getElementById("navCreate").classList.add("active");
-                }
+/* =========================
+   문제 추가
+========================= */
 
-                if (page === "list") {
-                    document.getElementById("listPage").classList.add("active");
-                    document.getElementById("navList").classList.add("active");
-                    renderQuizList();
-                }
+function addQuestion() {
 
-                if (page === "stats") {
-                    document.getElementById("statsPage").classList.add("active");
-                    document.getElementById("navStats").classList.add("active");
-                    renderStats();
-                }
+    questionCount++;
 
-                if (page === "notebook") {
+    const id = questionCount;
 
-                    document.getElementById("notebookPage")
-                        .classList.add("active");
+    const box =
+        document.createElement("div");
 
-                    loadNotebook();
+    box.className = "question-builder";
 
-                    initCanvas();
-                }
+    box.id = "question-" + id;
 
-                if (page === "notebook") {
-                    document.getElementById("navNotebook")
-                        .classList.add("active");
-                }
-            }
 
-
-            /* =========================
-               문제 추가
-            ========================= */
-
-            let questionCount = 0;
-
-            function addQuestion() {
-
-                questionCount++;
-
-                const box = document.createElement("div");
-
-                box.className = "question-builder";
-
-                box.id = "question-" + questionCount;
-
-                box.innerHTML = `
+    box.innerHTML = `
 
         <h3>
-            문제 ${questionCount}
+            문제 ${id}
         </h3>
 
-        <label>문제 유형</label>
 
-        <select onchange="changeType(${questionCount}, this.value)">
-            <option value="choice">4지선다</option>
-            <option value="short">주관식</option>
+        <label>
+            문제 유형
+        </label>
+
+        <select
+            class="question-type"
+            onchange="changeType(${id}, this.value)"
+        >
+            <option value="choice">
+                4지선다
+            </option>
+
+            <option value="short">
+                주관식
+            </option>
         </select>
 
-        <label>문제</label>
+
+        <label>
+            문제
+        </label>
 
         <textarea
             class="question-text"
             placeholder="문제를 입력하세요."
         ></textarea>
 
+
+        <!-- 4지선다 -->
+
         <div class="choice-area">
 
-            <label>보기</label>
+            <label>
+                보기
+            </label>
+
 
             <div class="option-row">
-                <input type="text" class="option" placeholder="보기 1">
+
+                <input
+                    type="text"
+                    class="option"
+                    placeholder="보기 1"
+                >
+
             </div>
+
 
             <div class="option-row">
-                <input type="text" class="option" placeholder="보기 2">
+
+                <input
+                    type="text"
+                    class="option"
+                    placeholder="보기 2"
+                >
+
             </div>
+
 
             <div class="option-row">
-                <input type="text" class="option" placeholder="보기 3">
+
+                <input
+                    type="text"
+                    class="option"
+                    placeholder="보기 3"
+                >
+
             </div>
+
 
             <div class="option-row">
-                <input type="text" class="option" placeholder="보기 4">
+
+                <input
+                    type="text"
+                    class="option"
+                    placeholder="보기 4"
+                >
+
             </div>
 
-            <label>정답</label>
+
+            <label>
+                정답
+            </label>
 
             <select class="correct-answer">
-                <option value="0">보기 1</option>
-                <option value="1">보기 2</option>
-                <option value="2">보기 3</option>
-                <option value="3">보기 4</option>
+
+                <option value="0">
+                    보기 1
+                </option>
+
+                <option value="1">
+                    보기 2
+                </option>
+
+                <option value="2">
+                    보기 3
+                </option>
+
+                <option value="3">
+                    보기 4
+                </option>
+
             </select>
 
         </div>
 
-        <div class="short-area" style="display:none;">
 
-            <label>답 정하기</label>
+        <!-- 주관식 -->
+
+        <div
+            class="short-area"
+            style="display:none;"
+        >
+
+            <label>
+                답 정하기
+            </label>
 
             <input
                 type="text"
@@ -818,217 +956,350 @@
 
         </div>
 
-        <label>해설</label>
-
-        <textarea
-            class="explanation-input"
-            placeholder="정답에 대한 해설을 입력하세요."
-        ></textarea>
 
         <button
             class="danger"
-            onclick="deleteQuestion(${questionCount})"
+            onclick="deleteQuestion(${id})"
         >
             🗑️ 문제 삭제
         </button>
+
     `;
 
-                document
-                    .getElementById("questionBuilder")
-                    .appendChild(box);
-            }
+
+    document
+        .getElementById("questionBuilder")
+        .appendChild(box);
+}
 
 
-            function changeType(id, type) {
-                const box = document.getElementById("question-" + id);
-            
-                if (type === "short") {
-                    box.querySelector(".choice-area").style.display = "none";
-                    box.querySelector(".short-area").style.display = "block";
-                } else {
-                    box.querySelector(".choice-area").style.display = "block";
-                    box.querySelector(".short-area").style.display = "none";
-                }
-            }
+/* =========================
+   문제 유형 변경
+========================= */
 
-            function deleteQuestion(id) {
+function changeType(id, type) {
 
-                const box = document.getElementById("question-" + id);
+    const box =
+        document.getElementById(
+            "question-" + id
+        );
 
-                if (box) {
-                    box.remove();
-                }
-
-            }
+    if (!box) {
+        return;
+    }
 
 
-            /* =========================
-               퀴즈 저장
-            ========================= */
+    const choiceArea =
+        box.querySelector(".choice-area");
 
-            function saveQuiz() {
+    const shortArea =
+        box.querySelector(".short-area");
 
-                const title =
-                    document.getElementById("quizTitle").value.trim();
 
-                const description =
-                    document.getElementById("quizDescription").value.trim();
+    if (type === "short") {
 
-                if (!title) {
-                    alert("퀴즈 제목을 입력하세요.");
-                    return;
-                }
+        choiceArea.style.display =
+            "none";
 
-                const boxes =
-                    document.querySelectorAll(".question-builder");
+        shortArea.style.display =
+            "block";
 
-                if (boxes.length === 0) {
-                    alert("문제를 하나 이상 추가하세요.");
-                    return;
-                }
+    } else {
 
-                const questions = [];
+        choiceArea.style.display =
+            "block";
 
-                boxes.forEach(box => {
+        shortArea.style.display =
+            "none";
+    }
+}
 
-                    const type =
-                        box.querySelector("select").value;
 
-                    const text =
-                        box.querySelector(".question-text").value.trim();
+/* =========================
+   문제 삭제
+========================= */
 
-                    const explanation =
-                        box.querySelector(".explanation-input").value.trim();
+function deleteQuestion(id) {
 
-                    if (!text) {
-                        return;
-                    }
+    const box =
+        document.getElementById(
+            "question-" + id
+        );
 
-                    if (type === "choice") {
+    if (box) {
+        box.remove();
+    }
+}
 
-                        const options =
-                            [...box.querySelectorAll(".option")]
-                                .map(input => input.value.trim());
 
-                        const answer =
-                            Number(
-                                box.querySelector(".correct-answer").value
-                            );
+/* =========================
+   퀴즈 저장
+========================= */
 
-                        questions.push({
-                            type: "choice",
-                            text,
-                            options,
-                            answer,
-                            explanation
-                        });
+function saveQuiz() {
 
-                    } else {
+    const title =
+        document
+            .getElementById("quizTitle")
+            .value
+            .trim();
 
-                        const answer =
-                            box.querySelector(".short-answer")
-                                .value.trim();
 
-                        questions.push({
-                            type: "short",
-                            text,
-                            answer,
-                            explanation
-                        });
+    const description =
+        document
+            .getElementById("quizDescription")
+            .value
+            .trim();
 
-                    }
 
-                });
+    if (!title) {
 
-                if (questions.length === 0) {
-                    alert("입력된 문제가 없습니다.");
-                    return;
-                }
+        alert("퀴즈 제목을 입력하세요.");
 
-                const quiz = {
+        return;
+    }
 
-                    id: Date.now(),
 
-                    title,
+    const boxes =
+        document.querySelectorAll(
+            ".question-builder"
+        );
 
-                    description,
 
-                    questions,
+    if (boxes.length === 0) {
 
-                    createdAt: new Date().toLocaleString(),
+        alert("문제를 하나 이상 추가하세요.");
 
-                    plays: 0,
+        return;
+    }
 
-                    correct: 0,
 
-                    total: 0
-                };
+    const questions = [];
 
-                quizzes.push(quiz);
 
-                localStorage.setItem(
-                    "myQuizzes",
-                    JSON.stringify(quizzes)
+    boxes.forEach(box => {
+
+        const type =
+            box.querySelector(
+                ".question-type"
+            ).value;
+
+
+        const text =
+            box.querySelector(
+                ".question-text"
+            ).value
+            .trim();
+
+
+        if (!text) {
+            return;
+        }
+
+
+        /* 4지선다 */
+
+        if (type === "choice") {
+
+            const options =
+                [
+                    ...box.querySelectorAll(
+                        ".option"
+                    )
+                ]
+                .map(input =>
+                    input.value.trim()
                 );
 
-                alert("🎉 퀴즈가 저장되었습니다!");
 
-                document.getElementById("quizTitle").value = "";
+            const answer =
+                Number(
+                    box.querySelector(
+                        ".correct-answer"
+                    ).value
+                );
 
-                document.getElementById("quizDescription").value = "";
 
-                document.getElementById("questionBuilder").innerHTML = "";
+            questions.push({
 
-                questionCount = 0;
+                type: "choice",
 
-                showPage("list");
+                text: text,
+
+                options: options,
+
+                answer: answer
+
+            });
+
+        }
+
+
+        /* 주관식 */
+
+        else {
+
+            const answer =
+                box.querySelector(
+                    ".short-answer"
+                ).value
+                .trim();
+
+
+            if (!answer) {
+
+                alert(
+                    "주관식 문제의 답을 입력하세요."
+                );
+
+                return;
             }
 
 
-            /* =========================
-               퀴즈 목록
-            ========================= */
+            questions.push({
 
-            function renderQuizList() {
+                type: "short",
 
-                const container =
-                    document.getElementById("quizList");
+                text: text,
 
-                if (quizzes.length === 0) {
+                answer: answer
 
-                    container.innerHTML = `
+            });
+        }
+
+    });
+
+
+    if (questions.length === 0) {
+
+        alert("입력된 문제가 없습니다.");
+
+        return;
+    }
+
+
+    const quiz = {
+
+        id: Date.now(),
+
+        title: title,
+
+        description: description,
+
+        questions: questions,
+
+        createdAt:
+            new Date().toLocaleString(),
+
+        plays: 0,
+
+        correct: 0,
+
+        total: 0
+    };
+
+
+    quizzes.push(quiz);
+
+
+    localStorage.setItem(
+        "myQuizzes",
+        JSON.stringify(quizzes)
+    );
+
+
+    alert("🎉 퀴즈가 저장되었습니다!");
+
+
+    document
+        .getElementById("quizTitle")
+        .value = "";
+
+
+    document
+        .getElementById("quizDescription")
+        .value = "";
+
+
+    document
+        .getElementById("questionBuilder")
+        .innerHTML = "";
+
+
+    questionCount = 0;
+
+
+    showPage("list");
+}
+
+
+/* =========================
+   퀴즈 목록
+========================= */
+
+function renderQuizList() {
+
+    const container =
+        document.getElementById(
+            "quizList"
+        );
+
+
+    if (quizzes.length === 0) {
+
+        container.innerHTML = `
+
             <div class="empty">
-                아직 만든 퀴즈가 없습니다.<br><br>
-                ✏️ 퀴즈 만들기에서 첫 퀴즈를 만들어보세요!
+
+                아직 만든 퀴즈가 없습니다.
+
+                <br><br>
+
+                ✏️ 퀴즈 만들기에서
+                첫 퀴즈를 만들어보세요!
+
             </div>
         `;
 
-                    return;
-                }
+        return;
+    }
 
-                container.innerHTML = "";
 
-                quizzes.forEach(quiz => {
+    container.innerHTML = "";
 
-                    const div = document.createElement("div");
 
-                    div.className = "question-item";
+    quizzes.forEach(quiz => {
 
-                    div.innerHTML = `
+        const div =
+            document.createElement("div");
+
+
+        div.className =
+            "question-item";
+
+
+        div.innerHTML = `
 
             <span class="badge">
                 ${quiz.questions.length}문제
             </span>
 
-            <h3>${escapeHTML(quiz.title)}</h3>
+            <h3>
+                ${escapeHTML(quiz.title)}
+            </h3>
 
             <p>
-                ${escapeHTML(quiz.description || "설명 없음")}
+                ${escapeHTML(
+                    quiz.description ||
+                    "설명 없음"
+                )}
             </p>
 
             <small>
-                만든 날짜: ${quiz.createdAt}
+                만든 날짜:
+                ${escapeHTML(quiz.createdAt)}
             </small>
+
 
             <div class="actions">
 
@@ -1039,6 +1310,7 @@
                     🎮 풀기
                 </button>
 
+
                 <button
                     class="danger"
                     onclick="deleteQuiz(${quiz.id})"
@@ -1047,120 +1319,175 @@
                 </button>
 
             </div>
+
         `;
 
-                    container.appendChild(div);
-                });
-            }
+
+        container.appendChild(div);
+    });
+}
 
 
-            function deleteQuiz(id) {
+/* =========================
+   퀴즈 삭제
+========================= */
 
-                if (!confirm("정말 이 퀴즈를 삭제할까요?")) {
-                    return;
-                }
+function deleteQuiz(id) {
 
-                quizzes =
-                    quizzes.filter(q => q.id !== id);
-
-                localStorage.setItem(
-                    "myQuizzes",
-                    JSON.stringify(quizzes)
-                );
-
-                renderQuizList();
-            }
+    if (!confirm(
+        "정말 이 퀴즈를 삭제할까요?"
+    )) {
+        return;
+    }
 
 
-            /* =========================
-               랜덤 섞기
-            ========================= */
-
-            function shuffle(array) {
-
-                const result = [...array];
-
-                for (let i = result.length - 1; i > 0; i--) {
-
-                    const j =
-                        Math.floor(Math.random() * (i + 1));
-
-                    [result[i], result[j]] =
-                        [result[j], result[i]];
-                }
-
-                return result;
-            }
+    quizzes =
+        quizzes.filter(
+            q => q.id !== id
+        );
 
 
-            /* =========================
-               퀴즈 시작
-            ========================= */
+    saveData();
 
-            function startQuiz(id) {
-
-                currentQuiz =
-                    quizzes.find(q => q.id === id);
-
-                if (!currentQuiz) {
-                    return;
-                }
-
-                currentQuestions =
-                    shuffle(currentQuiz.questions);
-
-                currentIndex = 0;
-
-                currentScore = 0;
-
-                answered = false;
-
-                currentQuiz.plays++;
-
-                saveData();
-
-                document.querySelectorAll(".page").forEach(p => {
-                    p.classList.remove("active");
-                });
-
-                document.getElementById("playPage")
-                    .classList.add("active");
-
-                renderQuestion();
-            }
+    renderQuizList();
+}
 
 
-            /* =========================
-               문제 표시
-            ========================= */
+/* =========================
+   배열 섞기
+========================= */
 
-            function renderQuestion() {
+function shuffle(array) {
 
-                const container =
-                    document.getElementById("quizPlay");
+    const result =
+        [...array];
 
-                if (currentIndex >= currentQuestions.length) {
 
-                    showResult();
+    for (
+        let i = result.length - 1;
+        i > 0;
+        i--
+    ) {
 
-                    return;
-                }
+        const j =
+            Math.floor(
+                Math.random() * (i + 1)
+            );
 
-                answered = false;
 
-                const question =
-                    currentQuestions[currentIndex];
+        [
+            result[i],
+            result[j]
+        ] =
+        [
+            result[j],
+            result[i]
+        ];
+    }
 
-                const progress =
-                    ((currentIndex) /
-                        currentQuestions.length) * 100;
 
-                let html = `
+    return result;
+}
+
+
+/* =========================
+   퀴즈 시작
+========================= */
+
+function startQuiz(id) {
+
+    currentQuiz =
+        quizzes.find(
+            q => q.id === id
+        );
+
+
+    if (!currentQuiz) {
+        return;
+    }
+
+
+    currentQuestions =
+        shuffle(
+            currentQuiz.questions
+        );
+
+
+    currentIndex = 0;
+
+    currentScore = 0;
+
+    answered = false;
+
+
+    currentQuiz.plays++;
+
+    saveData();
+
+
+    document
+        .querySelectorAll(".page")
+        .forEach(p =>
+            p.classList.remove("active")
+        );
+
+
+    document
+        .getElementById("playPage")
+        .classList.add("active");
+
+
+    renderQuestion();
+}
+
+
+/* =========================
+   문제 표시
+========================= */
+
+function renderQuestion() {
+
+    const container =
+        document.getElementById(
+            "quizPlay"
+        );
+
+
+    if (
+        currentIndex >=
+        currentQuestions.length
+    ) {
+
+        showResult();
+
+        return;
+    }
+
+
+    answered = false;
+
+
+    const question =
+        currentQuestions[
+            currentIndex
+        ];
+
+
+    const progress =
+        (
+            currentIndex /
+            currentQuestions.length
+        ) * 100;
+
+
+    let html = `
 
         <div class="quiz-header">
 
             <strong>
-                ${escapeHTML(currentQuiz.title)}
+                ${escapeHTML(
+                    currentQuiz.title
+                )}
             </strong>
 
             <span>
@@ -1171,54 +1498,82 @@
 
         </div>
 
+
         <div class="progress">
+
             <div
                 class="progress-bar"
                 style="width:${progress}%"
             ></div>
+
         </div>
 
+
         <div class="big-question">
-            ${escapeHTML(question.text)}
+
+            ${escapeHTML(
+                question.text
+            )}
+
         </div>
     `;
 
-                if (question.type === "choice") {
 
-                    const options =
-                        question.options.map((text, index) => ({
-                            text,
-                            index
-                        }));
+    /* 객관식 */
 
-                    const shuffledOptions =
-                        shuffle(options);
+    if (
+        question.type ===
+        "choice"
+    ) {
 
-                    shuffledOptions.forEach(option => {
+        const options =
+            question.options.map(
+                (text, index) => ({
+                    text,
+                    index
+                })
+            );
 
-                        html += `
 
-                <button
-                    class="quiz-option"
-                    onclick="answerChoice(
-                        ${option.index},
-                        this
-                    )"
-                >
-                    ${escapeHTML(option.text)}
-                </button>
-            `;
-                    });
+        shuffle(options)
+            .forEach(option => {
 
-                } else {
+                html += `
 
-                    html += `
+                    <button
+                        class="quiz-option"
+                        onclick="
+                            answerChoice(
+                                ${option.index},
+                                this
+                            )
+                        "
+                    >
+                        ${escapeHTML(
+                            option.text
+                        )}
+                    </button>
+
+                `;
+            });
+
+    }
+
+
+    /* 주관식 */
+
+    else {
+
+        html += `
 
             <input
                 id="shortAnswer"
                 type="text"
-                placeholder="정답을 입력하세요."
-                onkeydown="if(event.key==='Enter') answerShort()"
+                placeholder="답을 입력하세요."
+                onkeydown="
+                    if(event.key === 'Enter')
+                        answerShort()
+                "
             >
 
             <button
@@ -1227,354 +1582,461 @@
             >
                 정답 확인
             </button>
-        `;
-                }
 
-                html += `
+        `;
+    }
+
+
+    html += `
         <div id="feedback"></div>
     `;
 
-                container.innerHTML = html;
-            }
 
+    container.innerHTML =
+        html;
+}
 
-            /* =========================
-               객관식 정답
-            ========================= */
 
-            function answerChoice(index, button) {
+/* =========================
+   객관식 답 확인
+========================= */
 
-                if (answered) {
-                    return;
-                }
+function answerChoice(
+    index,
+    button
+) {
 
-                answered = true;
+    if (answered) {
+        return;
+    }
 
-                const question =
-                    currentQuestions[currentIndex];
 
-                const buttons =
-                    document.querySelectorAll(".quiz-option");
+    answered = true;
 
-                buttons.forEach(btn => {
-                    btn.disabled = true;
-                });
 
-                if (index === question.answer) {
+    const question =
+        currentQuestions[
+            currentIndex
+        ];
 
-                    button.classList.add("correct");
 
-                    currentScore++;
+    const buttons =
+        document.querySelectorAll(
+            ".quiz-option"
+        );
 
-                    currentQuiz.correct++;
 
-                    currentQuiz.total++;
+    buttons.forEach(btn => {
+        btn.disabled = true;
+    });
 
-                    document.getElementById("feedback").innerHTML = `
 
-            <div class="success">
-                🎉 정답입니다!
-            </div>
+    if (
+        index ===
+        question.answer
+    ) {
 
-            ${makeExplanation(question)}
-            
-            <br>
+        button.classList.add(
+            "correct"
+        );
 
-            <button
-                class="primary"
-                onclick="nextQuestion()"
-            >
-                다음 문제 →
-            </button>
-        `;
 
-                } else {
+        currentScore++;
 
-                    button.classList.add("wrong");
+        currentQuiz.correct++;
 
-                    buttons.forEach(btn => {
+        currentQuiz.total++;
 
-                        if (
-                            btn.textContent.trim()
-                            === question.options[question.answer]
-                        ) {
-                            btn.classList.add("correct");
-                        }
 
-                    });
+        document
+            .getElementById(
+                "feedback"
+            )
+            .innerHTML = `
 
-                    currentQuiz.total++;
+                <div class="success">
+                    🎉 정답입니다!
+                </div>
 
-                    document.getElementById("feedback").innerHTML = `
-
-            <div style="
-                background:#fee2e2;
-                color:#b91c1c;
-                padding:12px;
-                border-radius:10px;
-                margin-top:12px;
-            ">
-                ❌ 오답입니다.<br>
-                정답: ${escapeHTML(
-                        question.options[question.answer]
-                    )}
-            </div>
-
-            ${makeExplanation(question)}
-
-            <br>
-
-            <button
-                class="primary"
-                onclick="nextQuestion()"
-            >
-                다음 문제 →
-            </button>
-        `;
-                }
-
-                saveData();
-            }
-
-
-            /* =========================
-               주관식 정답
-            ========================= */
-
-            function answerShort() {
-
-                if (answered) {
-                    return;
-                }
-
-                const input =
-                    document.getElementById("shortAnswer");
-
-                const userAnswer =
-                    input.value.trim();
-
-                if (!userAnswer) {
-
-                    alert("답을 입력하세요.");
-
-                    return;
-                }
-
-                answered = true;
-
-                input.disabled = true;
-
-                const question =
-                    currentQuestions[currentIndex];
-
-                const correct =
-                    userAnswer.toLowerCase()
-                    === question.answer.toLowerCase();
-
-                if (correct) {
-
-                    currentScore++;
-
-                    currentQuiz.correct++;
-
-                    currentQuiz.total++;
-
-                    document.getElementById("feedback").innerHTML = `
-
-            <div class="success">
-                🎉 정답입니다!
-            </div>
-
-            ${makeExplanation(question)}
-
-            <br>
-
-            <button
-                class="primary"
-                onclick="nextQuestion()"
-            >
-                다음 문제 →
-            </button>
-        `;
-
-                } else {
-
-                    currentQuiz.total++;
-
-                    document.getElementById("feedback").innerHTML = `
-
-            <div style="
-                background:#fee2e2;
-                color:#b91c1c;
-                padding:12px;
-                border-radius:10px;
-                margin-top:12px;
-            ">
-                ❌ 오답입니다.<br>
-                정답: ${escapeHTML(question.answer)}
-            </div>
-
-            ${makeExplanation(question)}
-
-            <br>
-
-            <button
-                class="primary"
-                onclick="nextQuestion()"
-            >
-                다음 문제 →
-            </button>
-        `;
-                }
-
-                saveData();
-            }
-
-
-            /* =========================
-               해설
-            ========================= */
-
-            function makeExplanation(question) {
-
-                if (!question.explanation) {
-                    return "";
-                }
-
-                return `
-        <div class="explanation">
-            💡 <strong>해설</strong><br><br>
-            ${escapeHTML(question.explanation)}
-        </div>
-    `;
-            }
-
-
-            /* =========================
-               다음 문제
-            ========================= */
-
-            function nextQuestion() {
-
-                currentIndex++;
-
-                renderQuestion();
-            }
-
-
-            /* =========================
-               결과
-            ========================= */
-
-            function showResult() {
-
-                const percent =
-                    Math.round(
-                        currentScore /
-                        currentQuestions.length *
-                        100
-                    );
-
-                document.getElementById("quizPlay").innerHTML = `
-
-        <div class="result">
-
-            <h2>🎉 퀴즈 완료!</h2>
-
-            <div class="score">
-                ${percent}점
-            </div>
-
-            <p>
-                ${currentQuestions.length}문제 중
-                <strong>${currentScore}문제</strong>를 맞혔습니다.
-            </p>
-
-            <div class="actions" style="
-                justify-content:center;
-            ">
+                <br>
 
                 <button
                     class="primary"
-                    onclick="startQuiz(${currentQuiz.id})"
+                    onclick="nextQuestion()"
                 >
-                    🔄 다시 풀기
+                    다음 문제 →
                 </button>
+            `;
+
+    } else {
+
+        button.classList.add(
+            "wrong"
+        );
+
+
+        buttons.forEach(btn => {
+
+            if (
+                btn.textContent.trim()
+                ===
+                question.options[
+                    question.answer
+                ]
+            ) {
+
+                btn.classList.add(
+                    "correct"
+                );
+            }
+        });
+
+
+        currentQuiz.total++;
+
+
+        document
+            .getElementById(
+                "feedback"
+            )
+            .innerHTML = `
+
+                <div style="
+                    background:#fee2e2;
+                    color:#b91c1c;
+                    padding:12px;
+                    border-radius:10px;
+                    margin-top:12px;
+                ">
+
+                    ❌ 오답입니다.
+
+                    <br>
+
+                    정답:
+                    ${escapeHTML(
+                        question.options[
+                            question.answer
+                        ]
+                    )}
+
+                </div>
+
+                <br>
 
                 <button
-                    class="secondary"
-                    onclick="showPage('list')"
+                    class="primary"
+                    onclick="nextQuestion()"
                 >
-                    📚 퀴즈 목록
+                    다음 문제 →
                 </button>
+            `;
+    }
+
+
+    saveData();
+}
+
+
+/* =========================
+   주관식 답 확인
+========================= */
+
+function answerShort() {
+
+    if (answered) {
+        return;
+    }
+
+
+    const input =
+        document.getElementById(
+            "shortAnswer"
+        );
+
+
+    const userAnswer =
+        input.value.trim();
+
+
+    if (!userAnswer) {
+
+        alert(
+            "답을 입력하세요."
+        );
+
+        return;
+    }
+
+
+    answered = true;
+
+    input.disabled = true;
+
+
+    const question =
+        currentQuestions[
+            currentIndex
+        ];
+
+
+    const correct =
+        userAnswer
+            .toLowerCase()
+        ===
+        question.answer
+            .toLowerCase();
+
+
+    if (correct) {
+
+        currentScore++;
+
+        currentQuiz.correct++;
+
+        currentQuiz.total++;
+
+
+        document
+            .getElementById(
+                "feedback"
+            )
+            .innerHTML = `
+
+                <div class="success">
+                    🎉 정답입니다!
+                </div>
+
+                <br>
+
+                <button
+                    class="primary"
+                    onclick="nextQuestion()"
+                >
+                    다음 문제 →
+                </button>
+
+            `;
+
+    } else {
+
+        currentQuiz.total++;
+
+
+        document
+            .getElementById(
+                "feedback"
+            )
+            .innerHTML = `
+
+                <div style="
+                    background:#fee2e2;
+                    color:#b91c1c;
+                    padding:12px;
+                    border-radius:10px;
+                    margin-top:12px;
+                ">
+
+                    ❌ 오답입니다.
+
+                    <br>
+
+                    정답:
+                    ${escapeHTML(
+                        question.answer
+                    )}
+
+                </div>
+
+                <br>
+
+                <button
+                    class="primary"
+                    onclick="nextQuestion()"
+                >
+                    다음 문제 →
+                </button>
+
+            `;
+    }
+
+
+    saveData();
+}
+
+
+/* =========================
+   다음 문제
+========================= */
+
+function nextQuestion() {
+
+    currentIndex++;
+
+    renderQuestion();
+}
+
+
+/* =========================
+   결과
+========================= */
+
+function showResult() {
+
+    const percent =
+        Math.round(
+            currentScore /
+            currentQuestions.length *
+            100
+        );
+
+
+    document
+        .getElementById(
+            "quizPlay"
+        )
+        .innerHTML = `
+
+            <div class="result">
+
+                <h2>
+                    🎉 퀴즈 완료!
+                </h2>
+
+                <div class="score">
+                    ${percent}점
+                </div>
+
+                <p>
+
+                    ${
+                        currentQuestions.length
+                    }문제 중
+
+                    <strong>
+                        ${currentScore}문제
+                    </strong>
+
+                    를 맞혔습니다.
+
+                </p>
+
+
+                <div
+                    class="actions"
+                    style="justify-content:center;"
+                >
+
+                    <button
+                        class="primary"
+                        onclick="
+                            startQuiz(
+                                ${currentQuiz.id}
+                            )
+                        "
+                    >
+                        🔄 다시 풀기
+                    </button>
+
+
+                    <button
+                        class="secondary"
+                        onclick="
+                            showPage('list')
+                        "
+                    >
+                        📚 퀴즈 목록
+                    </button>
+
+                </div>
 
             </div>
 
-        </div>
-    `;
-
-                saveData();
-            }
+        `;
 
 
-            /* =========================
-               통계
-            ========================= */
+    saveData();
+}
 
-            function renderStats() {
 
-                const container =
-                    document.getElementById("stats");
+/* =========================
+   통계
+========================= */
 
-                if (quizzes.length === 0) {
+function renderStats() {
 
-                    container.innerHTML = `
+    const container =
+        document.getElementById(
+            "stats"
+        );
+
+
+    if (quizzes.length === 0) {
+
+        container.innerHTML = `
+
             <div class="empty">
                 아직 기록이 없습니다.
             </div>
+
         `;
 
-                    return;
-                }
+        return;
+    }
 
-                let totalPlays = 0;
-                let totalCorrect = 0;
-                let totalQuestions = 0;
 
-                quizzes.forEach(quiz => {
+    let totalPlays = 0;
+    let totalCorrect = 0;
+    let totalQuestions = 0;
 
-                    totalPlays += quiz.plays || 0;
 
-                    totalCorrect += quiz.correct || 0;
+    quizzes.forEach(quiz => {
 
-                    totalQuestions += quiz.total || 0;
+        totalPlays +=
+            quiz.plays || 0;
 
-                });
+        totalCorrect +=
+            quiz.correct || 0;
 
-                const accuracy =
-                    totalQuestions === 0
-                        ? 0
-                        : Math.round(
-                            totalCorrect /
-                            totalQuestions *
-                            100
-                        );
+        totalQuestions +=
+            quiz.total || 0;
 
-                container.innerHTML = `
+    });
+
+
+    const accuracy =
+        totalQuestions === 0
+            ? 0
+            : Math.round(
+                totalCorrect /
+                totalQuestions *
+                100
+            );
+
+
+    container.innerHTML = `
 
         <div class="question-item">
 
-            <h3>🎮 퀴즈 플레이</h3>
+            <h3>
+                🎮 퀴즈 플레이
+            </h3>
 
-            <div style="font-size:32px;font-weight:bold;">
+            <div style="
+                font-size:32px;
+                font-weight:bold;
+            ">
                 ${totalPlays}
             </div>
 
         </div>
 
+
         <div class="question-item">
 
-            <h3>🎯 전체 정답률</h3>
+            <h3>
+                🎯 전체 정답률
+            </h3>
 
             <div style="
                 font-size:32px;
@@ -1586,59 +2048,74 @@
 
         </div>
 
+
         <div class="question-item">
 
-            <h3>📝 전체 풀이 문제</h3>
+            <h3>
+                📝 전체 풀이 문제
+            </h3>
 
-            <div style="font-size:32px;font-weight:bold;">
+            <div style="
+                font-size:32px;
+                font-weight:bold;
+            ">
                 ${totalQuestions}
             </div>
 
         </div>
     `;
-            }
+}
 
 
-            /* =========================
-               저장
-            ========================= */
+/* =========================
+   저장
+========================= */
 
-            function saveData() {
+function saveData() {
 
-                localStorage.setItem(
-                    "myQuizzes",
-                    JSON.stringify(quizzes)
-                );
-            }
-
-
-            /* =========================
-               HTML 보안 처리
-            ========================= */
-
-            function escapeHTML(text) {
-
-                return String(text)
-                    .replace(/&/g, "&amp;")
-                    .replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;")
-                    .replace(/"/g, "&quot;")
-                    .replace(/'/g, "&#039;");
-            }
+    localStorage.setItem(
+        "myQuizzes",
+        JSON.stringify(quizzes)
+    );
+}
 
 
-            /* =========================
-               시작 시 문제 하나 제공
-            ========================= */
+/* =========================
+   HTML 보안
+========================= */
 
-            addQuestion();
+function escapeHTML(text) {
 
-            renderQuizList();
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+}
 
-        </script>
 
+/* =========================
+   처음 시작
+========================= */
 
+addQuestion();
+
+renderQuizList();
+
+</script>
 
 </body>
-
 </html>
